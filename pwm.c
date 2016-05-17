@@ -4,6 +4,10 @@
 #define PWM_NOMBRE_DE_CANAUX 2
 #define PWM_ESPACEMENT 6
 
+ static int canal_0 = 0;
+ static int canal_1 = 0;
+ static int tab_canal[2] = {0,0};
+ 
 /**
  * Convertit une valeur signée générique vers une valeur directement
  * utilisable pour la génération PWM.
@@ -11,8 +15,11 @@
  * @return Une valeur entre 62 et 125.
  */
 unsigned char pwmConversion(unsigned char valeurGenerique) {
-    // À implémenter...
-    return 0;
+    int val;
+    
+    val = valeurGenerique/(85/21)+62;
+    
+    return val;
 }
 
 /**
@@ -20,7 +27,15 @@ unsigned char pwmConversion(unsigned char valeurGenerique) {
  * @param canal Le numéro de canal.
  */
 void pwmPrepareValeur(unsigned char canal) {
-    // À implémenter...
+   
+    if (canal == 0){
+        canal_0 = 1;
+    } else if (canal == 1){
+        canal_1 = 1;
+    }else{
+        canal_0 = 0;
+        canal_1 = 0;
+    }
 }
 
 /**
@@ -28,7 +43,14 @@ void pwmPrepareValeur(unsigned char canal) {
  * @param valeur La valeur du canal.
  */
 void pwmEtablitValeur(unsigned char valeur) {
-    // À implémenter...
+    if (canal_0){
+        tab_canal[0] = pwmConversion(valeur);
+    } else if (canal_1){
+        tab_canal[1] = pwmConversion(valeur);
+    }else {
+        tab_canal[0] = 64;
+        tab_canal[1] = 64;
+    }
 }
 
 /**
@@ -37,8 +59,12 @@ void pwmEtablitValeur(unsigned char valeur) {
  * @return La valeur PWM correspondante au canal.
  */
 unsigned char pwmValeur(unsigned char canal) {
-    // À implémenter...
-    return 0;
+  if (canal_0){
+       return tab_canal[0];
+    } else if (canal_1){
+       return tab_canal[1];
+    }else {
+        return 64;
 }
 
 /**
