@@ -4,13 +4,10 @@
 #define PWM_NOMBRE_DE_CANAUX 2
 #define PWM_ESPACEMENT 6
 
- static unsigned int canal_0 = 0;
- static unsigned int canal_1 = 0;
- static unsigned int tab_canal[2] = {0,0};
- static unsigned char val_capt_0 = 0;
- static unsigned int val_fincapt_0 = 0;
- static unsigned int val_capt_1 = 0;
- static unsigned int val_fincapt_1 = 0;
+ static int canal_prepare;
+ static int canal_tab[PWM_NOMBRE_DE_CANAUX];
+ static int compt_espacement;
+ static unsigned int val_capt[PWM_NOMBRE_DE_CANAUX];
  
 /**
  * Convertit une valeur signée générique vers une valeur directement
@@ -20,9 +17,7 @@
  */
 unsigned char pwmConversion(unsigned char valeurGenerique) {
     int val;
-    
     val = valeurGenerique/(85/21)+62;
-    
     return val;
 }
 
@@ -31,17 +26,7 @@ unsigned char pwmConversion(unsigned char valeurGenerique) {
  * @param canal Le numéro de canal.
  */
 void pwmPrepareValeur(unsigned char canal) {
-   
-    if (canal == 0){
-        canal_0 = 1;
-        canal_1 = 0;
-    } else if (canal == 1){
-        canal_1 = 1;
-        canal_1 = 0;
-    }else{
-        canal_0 = 0;
-        canal_1 = 0;
-    }
+    canal_prepare = canal;
 }
 
 /**
@@ -49,14 +34,7 @@ void pwmPrepareValeur(unsigned char canal) {
  * @param valeur La valeur du canal.
  */
 void pwmEtablitValeur(unsigned char valeur) {
-    if (canal_0 == 1){
-        tab_canal[0] = pwmConversion(valeur);
-    } else if (canal_1 == 1){
-        tab_canal[1] = pwmConversion(valeur);
-    }else {
-        tab_canal[0] = 64;
-        tab_canal[1] = 64;
-    }
+    canal_tab[canal_prepare] = pwmConversion(valeur);
 }
 
 /**
@@ -65,14 +43,9 @@ void pwmEtablitValeur(unsigned char valeur) {
  * @return La valeur PWM correspondante au canal.
  */
 unsigned char pwmValeur(unsigned char canal) {
-  if (canal_0 == 0){
-       return tab_canal[0];
-    } else if (canal_1 == 1){
-       return tab_canal[1];
-    }else {
-        return 64;
-    }
+  return canal_tab[canal];
 }
+
 /**
  * Indique si il est temps d'émettre une pulsation PWM.
  * Sert à espacer les pulsation PWM pour les rendre compatibles
@@ -80,15 +53,13 @@ unsigned char pwmValeur(unsigned char canal) {
  * @return 255 si il est temps d'émettre une pulse. 0 autrement.
  */
 unsigned char pwmEspacement() {
-    unsigned int n = 0;
-    while(1){
-        n = 0;
-        while (n < PWM_ESPACEMENT ){
-            n++;
-            return 0;
-        }
+    if (compt_espacement == PWM_ESPACEMENT){
+        compt_espacement = 0;
+        return 255;
+    }else{
+        compt_espacement++;
+        return 0;
     }
-    return 255;
 }
     
 /**
@@ -96,13 +67,8 @@ unsigned char pwmEspacement() {
  * @param canal Numéro du canal.
  * @param instant Instant de démarrage de la capture.
  */
-    
 void pwmDemarreCapture(unsigned char canal, unsigned int instant) {
-    if (canal_0 == 1){
-        val_capt_0 = instant;
-    }else{
-        val_capt_1 = instant;
-    }
+    val_capt[canal] = instant;  
 }
 
 /**
@@ -110,38 +76,15 @@ void pwmDemarreCapture(unsigned char canal, unsigned int instant) {
  * @param canal Le numéro de canal.
  * @param instant L'instant de finalisation de la capture.
  */
-
-void pwmCompleteCapture(unsigned char canal, unsigned int instant) {
-    
-    if (canal_0 == 1){
-        val_fincapt_0 = instant;
-        if (val_capt_0 > val_fincapt_0){
-            tab_canal[0] = val_capt_0 - val_fincapt_0;
-        }else{
-            tab_canal[0] = val_fincapt_0 - val_capt_0;
-        }
-    }else{
-        val_fincapt_1 = instant;
-        if (val_capt_1 > val_fincapt_1){
-            tab_canal[1] = val_capt_1 - val_fincapt_1;
-        }else{
-            tab_canal[1] = val_fincapt_1 - val_capt_1;
-        }
-    }
+void pwmCompleteCapture(unsigned char canal, unsigned int instant) {  
+    canal_tab[canal] = instant - val_capt[canal];
 }
 
 /**
  * Réinitialise le système PWM.
  */
 void pwmReinitialise() {
-     canal_0 = 0;
-     canal_1 = 0;
-     tab_canal[0] = 0;
-     tab_canal[1] = 1;
-     val_capt_0 = 0;
-     val_fincapt_0 = 0;
-     val_capt_1 = 0;
-     val_fincapt_1 = 0;
+    compt_espacement == PWM_ESPACEMENT;
 }
 
 #ifdef TEST
