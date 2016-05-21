@@ -9,7 +9,15 @@
  static int compt_espacement;
  static unsigned int val_capt[PWM_NOMBRE_DE_CANAUX];
  
-/**
+ /* Remarques sur la simulation de ce programme: 
+ *  Il y a un décalage de 0.2 à 0.6 ° entre les servo commandés directement
+ *  et ceux commandés en copiant les valeurs des premiers,
+ *  ceci peut être dû au temps de traitement du signal,
+ *  à la surcharge du CPU (message d'avertissement) ou à d'autres
+ *  raisons que je ne parviens pas à identifier. F.Wyss
+ */
+ 
+ /*
  * Convertit une valeur signée générique vers une valeur directement
  * utilisable pour la génération PWM.
  * @param valeur Une valeur entre 0 et 255.
